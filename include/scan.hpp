@@ -1,3 +1,11 @@
+#include <iostream>
+#include <stdio.h>
+#include <ctime>
+
+#define LOG_NUM_BANKS 5
+#define NUM_BANKS 32
+#define BLOCK_SIZE 64
+
 __device__ inline size_t NoConflictIndex(size_t index);
 
 __global__ void PrescanBlocks(float * out_data, const float * in_data, float * block_sums, const size_t data_size);
