@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <cuda.h>
 #define BLOCK_SIZE 256
+#define ELTS_PER_THREAD 4
 
 __global__ void d_compact(float * d_classDistrTable, size_t * d_addr, bool * d_flag, float * d_buffer, size_t data_size) {
     
@@ -44,7 +45,8 @@ void compactCPU(float * h_classDistrTable, size_t * h_addr, bool * h_flag, size_
 
 void compactGPU(float * h_classDistrTable, size_t * h_addr, bool * h_flag, size_t data_size) {
     
-    size_t num_blocks = ((data_size + 2 * BLOCK_SIZE - 1) / (BLOCK_SIZE));
+    size_t num_blocks max(1, (int)ceil((float)numElements / 
+                          ((float)ELTS_PER_THREAD * BLOCK_SIZE)));
     float * d_classDistrTable;
     size_t * d_addr;
     bool * d_flag;
