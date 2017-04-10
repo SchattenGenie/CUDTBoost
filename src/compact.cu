@@ -45,7 +45,7 @@ void compactCPU(float * h_classDistrTable, size_t * h_addr, bool * h_flag, size_
 
 void compactGPU(float * h_classDistrTable, size_t * h_addr, bool * h_flag, size_t data_size) {
     
-    size_t num_blocks max(1, (int)ceil((float)numElements / 
+    size_t num_blocks max(1, (int)ceil((float)data_size / 
                           ((float)ELTS_PER_THREAD * BLOCK_SIZE)));
     float * d_classDistrTable;
     size_t * d_addr;
