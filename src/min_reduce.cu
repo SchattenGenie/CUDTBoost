@@ -6,6 +6,23 @@
 #define MAX_FLOAT 1.0e+127
 #define WARP_SIZE 32
 
+#define DEBUG
+#ifdef DEBUG
+#define cudaCheckError(ans) { cudaAssert((ans), __FILE__, __LINE__); }
+inline void cudaAssert(cudaError_t code, const char *file, int line, bool abort=true)
+{
+   if (code != cudaSuccess) 
+   {
+      fprintf(stderr, "CUDA Error: %s at %s:%d\n", 
+        cudaGetErrorString(code), file, line);
+      if (abort) exit(code);
+   }
+}
+#else
+#define cudaCheckError(ans) ans
+#endif
+
+
 inline __device__ float Min(const float first, const float second) {
         if (first < second) {
                 return first;
@@ -72,8 +89,8 @@ void TotalReduceGPU(const float * data, float * min, size_t data_size) {
 
         float * block_mins = (float *) malloc(num_blocks * sizeof(float));
 
-        cudaMalloc(&d_data, data_size * sizeof(float));
-        cudaMalloc(&d_block_mins, num_blocks * sizeof(float));
+        cudaCheckError( cudaMalloc(&d_data, data_size * sizeof(float)) );
+        cudaCheckError( cudaMalloc(&d_block_mins, num_blocks * sizeof(float)) );
 
         cudaMemcpy(d_data, data, data_size * sizeof(float), cudaMemcpyHostToDevice);
         ReduceBlocks<<<num_blocks, BLOCK_SIZE, shared_size>>>(d_block_mins, d_data, data_size);
