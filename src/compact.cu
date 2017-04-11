@@ -4,6 +4,23 @@
 #define BLOCK_SIZE 256
 #define ELTS_PER_THREAD 4
 
+#define DEBUG
+#ifdef DEBUG
+#define cudaCheckError(ans) { cudaAssert((ans), __FILE__, __LINE__); }
+inline void cudaAssert(cudaError_t code, const char *file, int line, bool abort=true)
+{
+   if (code != cudaSuccess) 
+   {
+      fprintf(stderr, "CUDA Error: %s at %s:%d\n", 
+        cudaGetErrorString(code), file, line);
+      if (abort) exit(code);
+   }
+}
+#else
+#define cudaCheckError(ans) ans
+#endif
+
+
 __global__ void d_compact(float * d_classDistrTable, size_t * d_addr, bool * d_flag, float * d_buffer, size_t data_size) {
     
     unsigned int iGlobal = blockIdx.x * (blockDim.x << 2) + threadIdx.x;
@@ -53,10 +70,10 @@ void compactGPU(float * h_classDistrTable, size_t * h_addr, bool * h_flag, size_
     float * d_buffer;
 
 
-    cudaMalloc(&d_classDistrTable, sizeof(float) * data_size);
-    cudaMalloc(&d_addr, sizeof(size_t) * data_size);
-    cudaMalloc(&d_flag, sizeof(bool) * data_size);
-    cudaMalloc(&d_buffer, sizeof(float) * data_size); //change it
+    cudaCheckError( cudaMalloc(&d_classDistrTable, sizeof(float) * data_size) );
+    cudaCheckError( cudaMalloc(&d_addr, sizeof(size_t) * data_size) );
+    cudaCheckError( cudaMalloc(&d_flag, sizeof(bool) * data_size) );
+    cudaCheckError( cudaMalloc(&d_buffer, sizeof(float) * data_size) );
 
     cudaMemcpy(d_classDistrTable, h_classDistrTable, data_size * sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(d_addr, h_addr, data_size * sizeof(size_t), cudaMemcpyHostToDevice);
