@@ -6,6 +6,23 @@
 #define NUM_BANKS 32
 #define BLOCK_SIZE 64
 
+#define DEBUG
+#ifdef DEBUG
+#define cudaCheckError(ans) { cudaAssert((ans), __FILE__, __LINE__); }
+inline void cudaAssert(cudaError_t code, const char *file, int line, bool abort=true)
+{
+   if (code != cudaSuccess) 
+   {
+      fprintf(stderr, "CUDA Error: %s at %s:%d\n", 
+        cudaGetErrorString(code), file, line);
+      if (abort) exit(code);
+   }
+}
+#else
+#define cudaCheckError(ans) ans
+#endif
+
+
 __device__ inline size_t NoConflictIndex(size_t index) {
     return index;
     // return index + (index >> LOG_NUM_BANKS);
@@ -101,9 +118,9 @@ void TotalPrescanGPU(const float * data, float * partial_sums, size_t data_size)
 
     block_sums = (float *) malloc(num_blocks * sizeof(float));
 
-    cudaMalloc(&d_data, data_size * sizeof(float));
-    cudaMalloc(&d_partial_sums, data_size * sizeof(float));
-    cudaMalloc(&d_block_sums, num_blocks * sizeof(float));
+    cudaCheckError( cudaMalloc(&d_data, data_size * sizeof(float)) );
+    cudaCheckError( cudaMalloc(&d_partial_sums, data_size * sizeof(float)) );
+    cudaCheckError( cudaMalloc(&d_block_sums, num_blocks * sizeof(float)) );
 
     cudaMemcpy(d_data, data, data_size * sizeof(float), cudaMemcpyHostToDevice);
     PrescanBlocks<<<num_blocks, BLOCK_SIZE, shared_size>>>(d_partial_sums, d_data, d_block_sums, data_size);
